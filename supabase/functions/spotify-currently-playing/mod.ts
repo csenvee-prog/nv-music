@@ -1,3 +1,4 @@
+/// <reference lib="deno.ns" />
 // supabase/functions/spotify-currently-playing/mod.ts
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -211,9 +212,13 @@ Deno.serve(async (req) => {
     };
 
     try {
-      newTokens = await refreshResponse.json();
+      newTokens = await refreshResponse.json() as {
+        access_token?: string;
+        refresh_token?: string;
+        expires_in?: number;
+      };
     } catch {
-      console.error('[Edge] Invalid token refresh response');
+      console.error('[Edge] Failed to parse token refresh response', refreshResponse.status);
       return new Response(
         JSON.stringify({ error: 'Invalid response from Spotify token service' }),
         {
@@ -226,11 +231,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!newTokens.access_token) {
+    if (!newTokens.access_token || typeof newTokens.access_token !== 'string' || newTokens.access_token.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Token refresh did not return access token' }),
-        { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+        JSON.stringify({ error: 'Invalid token refresh response' }),
+        { status: 502, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
       );
+    }
+
+    // Validate expires_in - use 3600 fallback if missing or invalid
+    let expiresInSeconds: number;
+    if (newTokens.expires_in === undefined || newTokens.expires_in === null) {
+      expiresInSeconds = 3600;
+    } else if (typeof newTokens.expires_in !== 'number' || !Number.isFinite(newTokens.expires_in) || newTokens.expires_in <= 0) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token refresh response' }),
+        { status: 502, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+      );
+    } else {
+      expiresInSeconds = newTokens.expires_in;
     }
 
     // Encrypt new tokens with controlled error handling
@@ -259,7 +277,7 @@ Deno.serve(async (req) => {
         refresh_token_encrypted: encryptedRefresh.ciphertext,
         refresh_token_nonce: encryptedRefresh.nonce,
         refresh_token_tag: encryptedRefresh.tag,
-        expires_at: new Date(Date.now() + (newTokens.expires_in || 3600) * 1000)
+        expires_at: new Date(Date.now() + expiresInSeconds * 1000)
       })
       .eq('id', connection.id);
 

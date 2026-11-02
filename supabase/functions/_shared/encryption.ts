@@ -1,3 +1,4 @@
+/// <reference lib="deno.ns" />
 // supabase/functions/_shared/encryption.ts
 
 /**
