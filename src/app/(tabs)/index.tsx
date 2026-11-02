@@ -33,12 +33,19 @@ export default function HomeScreen() {
     ? [currentTrack, ...recentTracks].filter((t, i, arr) => arr.findIndex(tr => tr.id === t.id) === i).slice(0, 4)
     : recentTracks;
 
-  const handlePlayTrack = (trackId: string) => {
-    const track = SEED_TRACKS[trackId];
-    if (track) {
-      playTrack(track);
-      router.push('/nowplaying');
-    }
+  const handlePlayTrack = (track: Track) => {
+    // Use the full Track object directly from recentHistory
+    // Build queue from all available tracks across sources
+    const allTracks = [
+      ...Object.values(SEED_TRACKS),
+      ...recentHistory,
+    ];
+    // Deduplicate by ID
+    const queue = Array.from(
+      new Map(allTracks.map(t => [t.id, t])).values()
+    );
+    playTrack(track, queue);
+    router.push('/nowplaying');
   };
 
   const handlePlayAlbum = (trackIds: string[]) => {
@@ -78,7 +85,7 @@ export default function HomeScreen() {
                 <Pressable
                   key={track.id}
                   style={({ pressed }) => [styles.trackCard, pressed && styles.cardPressed]}
-                  onPress={() => handlePlayTrack(track.id)}
+                  onPress={() => handlePlayTrack(track)}
                 >
                   <View style={styles.artworkPlaceholder}>
                     {track.artworkUrl ? (
@@ -88,7 +95,7 @@ export default function HomeScreen() {
                   )}
                 </View>
                 <View style={styles.trackInfo}>
-                  <TouchableOpacity onPress={() => handlePlayTrack(track.id)}>
+                  <TouchableOpacity onPress={() => handlePlayTrack(track)}>
                     <ThemedText style={styles.trackTitle} numberOfLines={1}>{track.title}</ThemedText>
                     <ThemedText style={styles.trackArtist} numberOfLines={1}>{track.artist}</ThemedText>
                   </TouchableOpacity>

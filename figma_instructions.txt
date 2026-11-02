@@ -1,0 +1,111 @@
+================================================================================
+NV MUSIC - APPLE MUSIC HOME SCREEN DESIGN INSTRUCTIONS
+================================================================================
+
+FIGMA FILE: https://www.figma.com/design/4TiZycmBHI1psKCeclnz1d/Untitled
+FILE KEY: 4TiZycmBHI1psKCeclnz1d
+
+================================================================================
+STEP-BY-STEP FIGNMA DESIGN CREATION
+================================================================================
+
+PAGE: Create new page named "Home - Apple Music Design"
+
+FRAME STRUCTURE (Mobile: 390x844px):
+
+┌─────────────────────────────────────────────────────────────────┐
+│ HEADER SECTION                                                  │
+│  Text: "Good morning"         (24px Bold, #ffffff)              │
+│  Text: "Continue listening" (14px Regular, #b3b3b3)           │
+│  Padding: 16px horizontal                                          │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ SECTION 2: FEATURED ALBUM (Large Card - 480x480px)              │
+│  Card: Rectangle 480x480px, radius 12px                         │
+│  Fill: #252526                                                   │
+│  Artwork placeholder: 480x480px, fill #1e1e1e                    │
+│  Overlay: Frame at bottom, height 120px                         │
+│    - Title: "Neon Horizon" (22px Bold, #ffffff)                 │
+│    - Artist: "Synthetics" (14px Regular, #b3b3b3)               │
+│    - Play Button: Circle 40x40px, fill #1db954, centered       │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ SECTION 3: RECENTLY PLAYED (3 Track Cards)                      │
+│  Header: "Recently Played" (24px Bold)                          │
+│  Carousel: Horizontal auto-layout, gap 16px                       │
+│  Track Card (120x120px artwork):                                  │
+│    - Rectangle 120x120px, radius 8px, fill #252526              │
+│    - Title text below (14px Bold, center)                       │
+│    - Artist text below (14px Regular, center)                   │
+│  Tracks: Piano Loop, Chill Vibes, Ambient Breeze               │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ SECTION 4: RECENTLY PLAYED ARTISTS (3 Circular Cards)           │
+│  Header: "Recently Played Artists" (24px Bold)                  │
+│  Carousel: Horizontal auto-layout, gap 16px                     │
+│  Artist Card (100x100px circular):                                │
+│    - Ellipse 100x100px, fill #252526                            │
+│    - Name text below (14px Bold, center)                        │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ SECTION 5: YOUR MUSIC (2 Playlist Cards)                        │
+│  Header: "Your Music" (24px Bold)                                │
+│  Carousel: Horizontal auto-layout, gap 16px                     │
+│  Playlist Card:                                                 │
+│    - Rectangle 200px height, fill #252526                       │
+│    - Play icon: small green triangle                            │
+│    - Title (14px Bold)                                          │
+│    - Description (14px Regular, #b3b3b3)                         │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ SECTION 6: ALBUMS (2 Album Cards)                                 │
+│  Header: "Albums" (24px Bold)                                    │
+│  Carousel: Horizontal auto-layout, gap 16px                     │
+│  Album Card:                                                    │
+│    - Rectangle 120x120px, radius 8px, fill #252526              │
+│    - Title (16px Bold, center)                                  │
+│    - Artist (14px Regular, center)                              │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ SECTION 7: PLAYLISTS (2 Playlist Cards)                         │
+│  Header: "Playlists" (24px Bold)                                 │
+│  Carousel: Horizontal auto-layout, gap 16px                     │
+│  Same layout as Your Music section                              │
+└─────────────────────────────────────────────────────────────────┘
+
+================================================================================
+COLORS (in # hex format)
+================================================================================
+#121212  - Background
+#1e1e1e  - Cards/Surface  
+#252526  - Elevated Surface (cards in carousel)
+#1db954  - Accent / Play Button
+#ffffff  - Primary Text
+#b3b3b3  - Secondary Text
+
+================================================================================
+TYPOGRAPHY
+================================================================================
+Section Headers:  24px Bold
+Album Titles:     16px Bold
+Track Titles:     14px Bold
+Artist Names:     14px Regular  
+Descriptions:     14px Regular
+
+================================================================================
+SPACING
+================================================================================
+Horizontal Padding: 16px
+Section Gap: 32px
+Card Gap: 16px
+Card Radius: 8px (12px for large cards)
+
+================================================================================
+END OF INSTRUCTIONS
+================================================================================

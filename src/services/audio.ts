@@ -142,6 +142,29 @@ class AudioService {
   }
 
   /**
+   * Prepare the player with a track without starting playback.
+   * Used for session restoration to load the track into the audio service.
+   */
+  async prepareTrack(track: Track): Promise<void> {
+    await this.configure();
+
+    const source: AudioSource = { uri: track.uri };
+
+    if (!this.player) {
+      this.player = createAudioPlayer(source);
+      this.attachStatusListener();
+    } else {
+      this.player.replace(source);
+    }
+
+    // Give the player a moment to load the source
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    this.currentTrack = track;
+    this.updateLockScreen(track);
+  }
+
+  /**
    * Seek to a specific position in seconds.
    */
   async seekTo(seconds: number): Promise<void> {

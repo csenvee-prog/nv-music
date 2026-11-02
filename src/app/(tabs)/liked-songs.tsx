@@ -3,9 +3,10 @@
  */
 
 import { StyleSheet, View, TouchableOpacity, Image, FlatList } from 'react-native';
+import { useEffect, useState } from 'react';
 import { ThemedText } from '@/components/themed-text';
 import { Premium, Spacing, ContentBottomPadding } from '@/constants/theme';
-import { SEED_TRACKS } from '@/data/seed';
+import { getAllTracks } from '@/services/sources';
 import { useLikesStore } from '@/store/likes';
 import { usePlayerStore } from '@/store/player';
 import { Track } from '@/types/music';
@@ -14,10 +15,19 @@ import { MiniPlayer } from '@/components/player/mini-player';
 export default function LikedSongsScreen() {
   const { likedTrackIds } = useLikesStore();
   const { playTrack } = usePlayerStore();
+  const [allTracks, setAllTracks] = useState<Track[]>([]);
 
-  // Get all liked tracks
+  // Load all tracks from all sources once
+  useEffect(() => {
+    getAllTracks().then(setAllTracks);
+  }, []);
+
+  // Build a lookup map for O(1) track resolution
+  const trackMap = new Map(allTracks.map(t => [t.id, t]));
+
+  // Get all liked tracks by resolving IDs against all available tracks
   const likedTracks = Array.from(likedTrackIds)
-    .map(id => SEED_TRACKS[id])
+    .map(id => trackMap.get(id))
     .filter((track): track is Track => track !== undefined);
 
   const handlePlayTrack = async (track: Track) => {
