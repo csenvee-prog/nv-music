@@ -5,10 +5,12 @@
  * - Shuffle/Repeat: Rotated when active
  * - Play: Central, most prominent
  * - All icons: 24×24px with state-aware tinting
+ * - Accessibility: All icon-only buttons have accessibility labels
+ * - Color scheme: Marshmallow white base with galactic violet and bubblegum pink accents
  */
 
 import React from 'react';
-import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Image, StyleSheet, Platform } from 'react-native';
 import { Premium } from '@/constants/theme';
 import { usePlayerStore } from '@/store/player';
 
@@ -45,6 +47,7 @@ export function ControlRow({ showLabels = false, compact = true }: ControlRowPro
           ]}
           tintColor={isShuffle ? Premium.accent : Premium.textSecondary}
           resizeMode="contain"
+          accessibilityLabel={isShuffle ? 'Turn off shuffle' : 'Turn on shuffle'}
         />
       </TouchableOpacity>
 
@@ -59,6 +62,7 @@ export function ControlRow({ showLabels = false, compact = true }: ControlRowPro
           style={[styles.controlIcon, { width: iconSize, height: iconSize }]}
           tintColor={Premium.text}
           resizeMode="contain"
+          accessibilityLabel="Previous track"
         />
       </TouchableOpacity>
 
@@ -78,6 +82,7 @@ export function ControlRow({ showLabels = false, compact = true }: ControlRowPro
             style={[styles.playIcon, { width: iconSize * 0.7, height: iconSize * 0.7 }]}
             tintColor={Premium.accentForeground}
             resizeMode="contain"
+            accessibilityLabel={isPlaying ? 'Pause playback' : 'Play pause'}
           />
         </View>
       </TouchableOpacity>
@@ -93,6 +98,7 @@ export function ControlRow({ showLabels = false, compact = true }: ControlRowPro
           style={[styles.controlIcon, { width: iconSize, height: iconSize }]}
           tintColor={Premium.text}
           resizeMode="contain"
+          accessibilityLabel="Next track"
         />
       </TouchableOpacity>
 
@@ -111,6 +117,7 @@ export function ControlRow({ showLabels = false, compact = true }: ControlRowPro
           ]}
           tintColor={repeatMode !== 'off' ? Premium.accent : Premium.textSecondary}
           resizeMode="contain"
+          accessibilityLabel={repeatMode !== 'off' ? 'Turn off repeat' : 'Turn on repeat'}
         />
       </TouchableOpacity>
     </View>
@@ -127,6 +134,13 @@ const styles = StyleSheet.create({
   controlButton: {
     padding: 8,
     borderRadius: 8,
+    ...Platform.select({
+      web: {
+        outline: '2px solid var(--focus-color, #7f1d7f)',
+        outlineOffset: 2,
+      },
+      native: {},
+    }),
   },
   playContainer: {
     padding: 8,

@@ -279,7 +279,7 @@ export const usePlayerStore = create<PlayerState>()(
           set({
             isLoading: false,
             isPlaying: false,
-            error: err instanceof Error ? err.message : 'Failed to play track',
+            error: err instanceof Error ? err.message : 'Unable to play this track. Check your connection and try again.',
             isTransitioning: false,
           });
         }
@@ -475,6 +475,7 @@ export const usePlayerStore = create<PlayerState>()(
           set({ position: clampedSeconds });
         } catch (err) {
           console.error('[PlayerStore] Seek failed:', err);
+          set({ error: 'Could not seek to that position.' });
         }
       },
 

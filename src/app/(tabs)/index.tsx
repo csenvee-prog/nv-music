@@ -6,7 +6,7 @@
 import { ScrollView, StyleSheet, View, Pressable, Image, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Premium, Spacing, ContentBottomPadding, CardSize } from '@/constants/theme';
-import { SEED_PLAYLISTS, SEED_ALBUMS, SEED_TRACKS } from '@/data/seed';
+import { SEED_ALBUMS, SEED_TRACKS } from '@/data/seed';
 import { usePlayerStore } from '@/store/player';
 import { useLikesStore } from '@/store/likes';
 import { Track } from '@/types/music';

@@ -19,10 +19,11 @@ export interface EncryptedResult {
 /**
  * Converts a hex string to a Uint8Array.
  * Validates that the input contains only valid hexadecimal characters.
+ * Throws on malformed Base64 input to prevent silent failures.
  */
 function hexToBytes(hex: string): Uint8Array {
   if (hex.length % 2 !== 0) {
-    throw new Error('Invalid hex string');
+    throw new Error('Invalid hex string: length must be even');
   }
   // Validate that hex contains only valid hexadecimal characters
   if (!/^[0-9a-fA-F]+$/.test(hex)) {
@@ -49,14 +50,26 @@ function bytesToBase64(bytes: Uint8Array): string {
 
 /**
  * Converts a Base64 string to a Uint8Array.
+ * Throws if input is malformed (invalid Base64 characters or padding).
  */
 function base64ToBytes(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+  if (!base64) {
+    throw new Error('Base64 input is empty');
   }
-  return bytes;
+  // Validate Base64 format (allowing for standard padding)
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64)) {
+    throw new Error('Invalid Base64 format');
+  }
+  try {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  } catch (e) {
+    throw new Error('Base64 decoding failed');
+  }
 }
 
 /**
@@ -64,7 +77,7 @@ function base64ToBytes(base64: string): Uint8Array {
  */
 function validateKeyVersion(keyVersion: number): void {
   if (!Number.isSafeInteger(keyVersion) || keyVersion <= 0) {
-    throw new Error(`Invalid key version: must be a positive safe integer, got ${keyVersion}`);
+    throw new Error('Invalid key version');
   }
 }
 
@@ -86,11 +99,11 @@ async function getKey(keyVersion: number): Promise<CryptoKey> {
   const keyHex = Deno.env.get(secretName);
 
   if (!keyHex) {
-    throw new Error(`Encryption key not found for version ${keyVersion} (${secretName})`);
+    throw new Error('Encryption key not found');
   }
 
   if (keyHex.length !== 64) {
-    throw new Error(`Invalid encryption key length for version ${keyVersion}. Expected 64 hex characters (32 bytes).`);
+    throw new Error('Invalid encryption key length. Expected 64 hex characters (32 bytes).');
   }
 
   const keyBytes = hexToBytes(keyHex);
@@ -114,8 +127,8 @@ export async function encryptToken(
   plaintext: string,
   keyVersion: number = 1
 ): Promise<EncryptedResult> {
-  if (!plaintext) {
-    throw new Error('Plaintext cannot be empty');
+  if (!plaintext || typeof plaintext !== 'string') {
+    throw new Error('Plaintext must be a non-empty string');
   }
 
   validateKeyVersion(keyVersion);
@@ -145,11 +158,12 @@ export async function encryptToken(
   const cipherBytes = combinedBytes.slice(0, combinedBytes.length - tagLength);
   const tagBytes = combinedBytes.slice(combinedBytes.length - tagLength);
 
+  // Defensive: should always pass with proper nonce generation
   if (nonceBytes.length !== 12) {
-    throw new Error('Invalid nonce length generated');
+    throw new Error('Nonces are always 12 bytes with crypto.getRandomValues');
   }
   if (tagBytes.length !== 16) {
-    throw new Error('Invalid authentication tag length generated');
+    throw new Error('Authentication tags are always 16 bytes with tagLength: 128');
   }
 
   return {
@@ -163,6 +177,7 @@ export async function encryptToken(
 /**
  * Decrypts ciphertext using AES-256-GCM.
  * Combines ciphertext and authentication tag back together before calling subtle.decrypt.
+ * Throws a generic error on decryption failure to avoid exposing key material.
  */
 export async function decryptToken(
   ciphertextB64: string,
@@ -170,24 +185,44 @@ export async function decryptToken(
   tagB64: string,
   keyVersion: number = 1
 ): Promise<string> {
-  if (!ciphertextB64 || !nonceB64 || !tagB64) {
-    throw new Error('Missing ciphertext, nonce, or authentication tag for decryption');
+  // Validate all inputs are non-empty strings
+  if (!ciphertextB64 || typeof ciphertextB64 !== 'string') {
+    throw new Error('Invalid ciphertext');
+  }
+  if (!nonceB64 || typeof nonceB64 !== 'string') {
+    throw new Error('Invalid nonce');
+  }
+  if (!tagB64 || typeof tagB64 !== 'string') {
+    throw new Error('Invalid authentication tag');
   }
 
   validateKeyVersion(keyVersion);
 
-  const cryptoKey = await getKey(keyVersion);
+  let cipherBytes: Uint8Array;
+  let nonceBytes: Uint8Array;
+  let tagBytes: Uint8Array;
 
-  const cipherBytes = base64ToBytes(ciphertextB64);
-  const nonceBytes = base64ToBytes(nonceB64);
-  const tagBytes = base64ToBytes(tagB64);
-
-  if (nonceBytes.length !== 12) {
-    throw new Error(`Invalid nonce length: expected 12 bytes, got ${nonceBytes.length}`);
+  try {
+    cipherBytes = base64ToBytes(ciphertextB64);
+    nonceBytes = base64ToBytes(nonceB64);
+    tagBytes = base64ToBytes(tagB64);
+  } catch (e) {
+    throw new Error('Invalid input encoding');
   }
 
+  // Validate nonce length (12 bytes = 96 bits is required for AES-GCM)
+  if (nonceBytes.length !== 12) {
+    throw new Error('Invalid nonce length');
+  }
+
+  // Validate tag length (16 bytes = 128 bits is standard for AES-GCM)
   if (tagBytes.length !== 16) {
-    throw new Error(`Invalid authentication tag length: expected 16 bytes, got ${tagBytes.length}`);
+    throw new Error('Invalid tag length');
+  }
+
+  // Validate ciphertext is not empty
+  if (cipherBytes.length === 0) {
+    throw new Error('Ciphertext is empty');
   }
 
   // Recombine ciphertext and authentication tag for Web Crypto API
@@ -196,6 +231,7 @@ export async function decryptToken(
   combinedBytes.set(tagBytes, cipherBytes.length);
 
   try {
+    const cryptoKey = await getKey(keyVersion);
     const decryptedBuffer = await crypto.subtle.decrypt(
       {
         name: 'AES-GCM',
@@ -208,7 +244,12 @@ export async function decryptToken(
 
     return new TextDecoder('utf-8', { fatal: true }).decode(decryptedBuffer);
   } catch (err) {
-    throw new Error(`Decryption failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    // AES-GCM authentication failure (tag mismatch) throws a specific error
+    // We catch and rethrow generically to avoid leaking key version info
+    if (err instanceof Error && err.message.includes('Operation failed')) {
+      throw new Error('Decryption failed: authentication error');
+    }
+    throw new Error('Decryption failed');
   }
 }
 

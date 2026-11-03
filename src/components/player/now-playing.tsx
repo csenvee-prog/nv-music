@@ -54,7 +54,7 @@ export function NowPlayingScreen() {
             <Image
               source={require('@/assets/icons/heart_like_icon.png')}
               style={styles.likeIcon}
-              tintColor={isLiked(currentTrack.id) ? Premium.accent : Premium.textSecondary}
+              tintColor={isLiked(currentTrack.id) ? Premium.bubblegum : Premium.textSecondary}
               resizeMode="contain"
             />
           )}

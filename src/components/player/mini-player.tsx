@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Platform, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { usePlayerStore } from '@/store/player';
 import { useLikesStore } from '@/store/likes';
 import { ThemedText } from '@/components/themed-text';
@@ -11,8 +11,9 @@ const HeartIcon = ({ liked }: { liked: boolean }) => (
   <Image
     source={require('@/assets/icons/heart_like_icon.png')}
     style={styles.heartIcon}
-    tintColor={liked ? Premium.accent : Premium.textSecondary}
+    tintColor={liked ? Premium.bubblegum : Premium.textSecondary}
     resizeMode="contain"
+    accessibilityLabel={liked ? 'Unlike this track' : 'Like this track'}
   />
 );
 
@@ -53,7 +54,7 @@ export function MiniPlayer() {
   return (
     <View style={styles.container}>
       {/* Top Row: Artwork, Track Info, Playback Controls */}
-      <View style={styles.topRow}>
+      <View style={styles.topRow} accessibilityLabel="Now playing screen">
         {/* Album Artwork */}
         <TouchableOpacity style={styles.artworkContainer} onPress={handleNavigate} activeOpacity={0.7}>
           {currentTrack.artworkUrl ? (
@@ -78,7 +79,7 @@ export function MiniPlayer() {
         {/* Playback Controls */}
         <View style={styles.controlsContainer}>
           <TouchableOpacity style={styles.controlButton} onPress={prev} activeOpacity={0.7}>
-            <Image source={require('@/assets/icons/skip_previous_icon.png')} style={styles.controlIcon} tintColor={Premium.text} resizeMode="contain" />
+            <Image source={require('@/assets/icons/skip_previous_icon.png')} style={styles.controlIcon} tintColor={Premium.text} resizeMode="contain" accessibilityLabel="Previous track" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.playButton} onPress={togglePlay} activeOpacity={0.8}>
@@ -87,11 +88,12 @@ export function MiniPlayer() {
               style={styles.playIcon}
               tintColor={Premium.accentForeground}
               resizeMode="contain"
+              accessibilityLabel={isPlaying ? 'Pause playback' : 'Play pause'}
             />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.controlButton} onPress={next} activeOpacity={0.7}>
-            <Image source={require('@/assets/icons/skip_next_icon.png')} style={styles.controlIcon} tintColor={Premium.text} resizeMode="contain" />
+            <Image source={require('@/assets/icons/skip_next_icon.png')} style={styles.controlIcon} tintColor={Premium.text} resizeMode="contain" accessibilityLabel="Next track" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.likeButton} onPress={handleLike} activeOpacity={0.7}>
@@ -162,14 +164,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  artworkPlaceholder: {
+    width: 24,
+    height: 24,
+    backgroundColor: Premium.surfaceElevated,
+  },
   artwork: {
     width: 36,
     height: 36,
-  },
-  artworkPlaceholder: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
   },
   trackInfo: {
     flex: 1,
@@ -177,11 +179,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  trackTouchable: {
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   title: {
     fontSize: 13,
@@ -194,6 +191,11 @@ const styles = StyleSheet.create({
     color: Premium.textSecondary,
     marginTop: 2,
   },
+  trackTouchable: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   controlsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -205,6 +207,13 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
+    ...Platform.select({
+      web: {
+        outline: '2px solid var(--focus-color, #7f1d7f)',
+        outlineOffset: 2,
+      },
+      native: {},
+    }),
   },
   playButton: {
     width: 24,

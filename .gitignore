@@ -68,3 +68,7 @@ IMPLEMENTATION_SUMMARY.md
 NV_MUSIC_DESIGN_GUIDE.md
 SCREENSHOT_REFERENCE.md
 TESTING_GUIDE.md
+
+# Local development state
+.claude/
+supabase/.temp/
